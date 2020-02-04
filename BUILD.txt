@@ -1,0 +1,6 @@
+sudo apt install gcc-mingw-w64
+mkdir out
+cd out
+cmake .. && make
+i686-w64-mingw32-strip ssrwin.exe
+

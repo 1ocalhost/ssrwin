@@ -1,0 +1,8 @@
+#pragma once
+
+#ifdef __MINGW32__
+#define CONNECT_IN_PROGRESS WSAEWOULDBLOCK
+#else
+#define CONNECT_IN_PROGRESS EINPROGRESS
+#endif
+
