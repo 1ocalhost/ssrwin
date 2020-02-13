@@ -111,6 +111,8 @@ static int mode = TCP_ONLY;
 static int ipv6first = 0;
 
 static int fast_open = 0;
+static int reuse_addr = 0;
+
 #ifdef HAVE_SETRLIMIT
 #ifndef LIB_ONLY
 static int nofile = 0;
@@ -206,14 +208,20 @@ create_and_bind(const char *addr, const char *port)
         }
 
         int opt = 1;
-        setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+        if (reuse_addr) {
+            setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+        }
+
 #ifdef SO_NOSIGPIPE
         setsockopt(listen_sock, SOL_SOCKET, SO_NOSIGPIPE, &opt, sizeof(opt));
 #endif
+
+#ifndef __MINGW32__
         int err = set_reuseport(listen_sock);
         if (err == 0) {
             LOGI("tcp port reuse enabled");
         }
+#endif
 
         s = bind(listen_sock, rp->ai_addr, rp->ai_addrlen);
         if (s == 0) {
@@ -1473,6 +1481,19 @@ init_obfs(server_def_t *serv, char *protocol, char *protocol_param, char *obfs, 
     }
 }
 
+
+enum FatalCode {
+    FATAL_CODE_BIND = 1,
+    FATAL_CODE_LISTEN,
+};
+
+static inline void
+FATAL_CODE(const char *msg, int code)
+{
+    LOGE("%s", msg);
+    exit(code);
+}
+
 #ifndef LIB_ONLY
 int
 main(int argc, char **argv)
@@ -1512,6 +1533,7 @@ main(int argc, char **argv)
             { "mptcp",     no_argument,       0, 0 },
             { "help",      no_argument,       0, 0 },
             { "host",      required_argument, 0, 0 },
+            { "reuse-addr", no_argument,       0, 0 },
             {           0,                 0, 0, 0 }
     };
 
@@ -1547,6 +1569,8 @@ main(int argc, char **argv)
                     exit(EXIT_SUCCESS);
                 } else if (option_index == 5) {
                     hostnames[remote_num] = optarg;
+                } else if (option_index == 6) {
+                    reuse_addr = 1;
                 }
                 break;
             case 's':
@@ -1925,10 +1949,10 @@ main(int argc, char **argv)
         listenfd = create_and_bind(local_addr, local_port);
 #endif
         if (listenfd == -1) {
-            FATAL("bind() error");
+            FATAL_CODE("bind() error", FATAL_CODE_BIND);
         }
         if (listen(listenfd, SOMAXCONN) == -1) {
-            FATAL("listen() error");
+            FATAL_CODE("listen() error", FATAL_CODE_LISTEN);
         }
         setnonblocking(listenfd);
 

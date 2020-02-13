@@ -259,7 +259,7 @@ usage()
     printf("\n");
     printf("  usage:\n\n");
 #ifdef MODULE_LOCAL
-    printf("    ss-local\n");
+    printf("    ssrwin\n");
 #elif MODULE_REMOTE
     printf("    ss-server\n");
 #elif MODULE_TUNNEL
@@ -338,6 +338,8 @@ usage()
         "       [-d <addr>]                Name servers for internal DNS resolver.\n");
 #endif
 #if defined(MODULE_REMOTE) || defined(MODULE_LOCAL)
+    printf(
+        "       [--reuse-addr]             Allow reuse of local addresses.\n");
     printf(
         "       [--fast-open]              Enable TCP fast open.\n");
     printf(
