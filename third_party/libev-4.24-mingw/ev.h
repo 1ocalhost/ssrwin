@@ -203,6 +203,10 @@ struct ev_loop;
 # define EV_API_DECL extern
 #endif
 
+// patch for static link
+#undef EV_API_DECL
+#define EV_API_DECL
+
 /* EV_PROTOTYPES can be used to switch of prototype declarations */
 #ifndef EV_PROTOTYPES
 # define EV_PROTOTYPES 1
